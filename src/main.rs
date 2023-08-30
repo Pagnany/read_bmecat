@@ -72,8 +72,16 @@ fn create_article(node: roxmltree::Node) -> Article {
             "SEGMENT" => {
                 article.article_details.segment = descen.text().unwrap_or("").to_string();
             }
-            "ARTICLE_ORDER_DETAILS" => {
+            "ARTICLE_ORDER" => {
                 article.article_details.article_order = descen.text().unwrap_or("").to_string();
+            }
+            "ARTICLE_ORDER_DETAILS" => {
+                article.article_order_details = create_article_order_details(descen);
+            }
+            "ARTICLE_PRICE_DETAILS" => {
+                article
+                    .article_price_details
+                    .push(create_article_price_details(descen));
             }
 
             "ARTICLE_FEATURES" => {
@@ -185,10 +193,114 @@ fn create_mime(node: roxmltree::Node) -> Mime {
     mime
 }
 
+fn create_article_order_details(node: roxmltree::Node) -> ArticleOrderDetails {
+    let mut article_order_details = ArticleOrderDetails {
+        ..Default::default()
+    };
+    for descen in node.descendants() {
+        match descen.tag_name().name() {
+            "ORDER_UNIT" => {
+                article_order_details.order_unit = descen.text().unwrap_or("").to_string();
+            }
+            "CONTENT_UNIT" => {
+                article_order_details.content_unit = descen.text().unwrap_or("").to_string();
+            }
+            "NO_CU_PER_OU" => {
+                article_order_details.no_cu_per_ou = descen.text().unwrap_or("").to_string();
+            }
+            "PRICE_QUANTITY" => {
+                article_order_details.price_quantity = descen.text().unwrap_or("").to_string();
+            }
+            "QUANTITY_MIN" => {
+                article_order_details.quantity_min = descen.text().unwrap_or("").to_string();
+            }
+            "QUANTITY_INTERVAL" => {
+                article_order_details.quantity_interval = descen.text().unwrap_or("").to_string();
+            }
+            _ => (),
+        }
+    }
+    article_order_details
+}
+
+fn create_article_price_details(node: roxmltree::Node) -> ArticlePriceDetails {
+    let mut article_price_details = ArticlePriceDetails {
+        ..Default::default()
+    };
+    for descen in node.descendants() {
+        match descen.tag_name().name() {
+            "DATETIME" => match descen.attribute("type").unwrap_or("") {
+                "valid_start_date" => {
+                    article_price_details.start_date = create_date(descen);
+                }
+                "valid_end_date" => {
+                    article_price_details.end_date = create_date(descen);
+                }
+                _ => (),
+            },
+            "DAILY_PRICE" => {
+                article_price_details.daily_price = descen.text().unwrap_or("").to_string();
+            }
+            "ARTICLE_PRICE" => {
+                article_price_details.article_price_type =
+                    descen.attribute("price_type").unwrap_or("").to_string();
+
+                article_price_details.article_prices = create_article_price(descen);
+            }
+            _ => (),
+        }
+    }
+    article_price_details
+}
+
+fn create_date(node: roxmltree::Node) -> String {
+    let mut date = "".to_string();
+    for descen in node.descendants() {
+        match descen.tag_name().name() {
+            "DATE" => {
+                date = descen.text().unwrap_or("").to_string();
+            }
+            _ => (),
+        }
+    }
+    date
+}
+
+fn create_article_price(node: roxmltree::Node) -> ArticlePrice {
+    let mut article_price = ArticlePrice {
+        ..Default::default()
+    };
+
+    for descen in node.descendants() {
+        match descen.tag_name().name() {
+            "PRICE_AMOUNT" => {
+                article_price.price_amount = descen.text().unwrap_or("").to_string();
+            }
+            "PRICE_CURRENCY" => {
+                article_price.price_currency = descen.text().unwrap_or("").to_string();
+            }
+            "TAX" => {
+                article_price.tax = descen.text().unwrap_or("").to_string();
+            }
+            "PRICE_FACTOR" => {
+                article_price.price_factor = descen.text().unwrap_or("").to_string();
+            }
+            "LOWER_BOUND" => {
+                article_price.lower_bound = descen.text().unwrap_or("").to_string();
+            }
+            _ => (),
+        }
+    }
+
+    article_price
+}
+
 #[derive(Debug, Clone)]
 struct Article {
     id: String,
     article_details: ArtikelDetails,
+    article_order_details: ArticleOrderDetails,
+    article_price_details: Vec<ArticlePriceDetails>,
     article_feature_groups: Vec<ArticleFeatureGroup>,
     mime_infos: Vec<Mime>,
 }
@@ -198,6 +310,10 @@ impl Default for Article {
         Article {
             id: "".to_string(),
             article_details: ArtikelDetails {
+                ..Default::default()
+            },
+            article_price_details: Vec::new(),
+            article_order_details: ArticleOrderDetails {
                 ..Default::default()
             },
             article_feature_groups: Vec::new(),
@@ -286,10 +402,71 @@ impl Default for ArticleFeature {
 }
 
 #[derive(Debug, Clone)]
-struct ArticleOrderDetails {}
+struct ArticleOrderDetails {
+    order_unit: String,
+    content_unit: String,
+    no_cu_per_ou: String,
+    price_quantity: String,
+    quantity_min: String,
+    quantity_interval: String,
+}
+
+impl Default for ArticleOrderDetails {
+    fn default() -> Self {
+        ArticleOrderDetails {
+            order_unit: "".to_string(),
+            content_unit: "".to_string(),
+            no_cu_per_ou: "".to_string(),
+            price_quantity: "".to_string(),
+            quantity_min: "".to_string(),
+            quantity_interval: "".to_string(),
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
-struct ArticlePriceDetails {}
+struct ArticlePriceDetails {
+    start_date: String,
+    end_date: String,
+    daily_price: String,
+    article_prices: ArticlePrice,
+    article_price_type: String,
+}
+
+impl Default for ArticlePriceDetails {
+    fn default() -> Self {
+        ArticlePriceDetails {
+            start_date: "".to_string(),
+            end_date: "".to_string(),
+            daily_price: "".to_string(),
+            article_prices: ArticlePrice {
+                ..Default::default()
+            },
+            article_price_type: "".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ArticlePrice {
+    price_amount: String,
+    price_currency: String,
+    tax: String,
+    price_factor: String,
+    lower_bound: String,
+}
+
+impl Default for ArticlePrice {
+    fn default() -> Self {
+        ArticlePrice {
+            price_amount: "".to_string(),
+            price_currency: "".to_string(),
+            tax: "".to_string(),
+            price_factor: "".to_string(),
+            lower_bound: "".to_string(),
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 struct Mime {
