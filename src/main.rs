@@ -46,34 +46,46 @@ fn create_artikel(node: roxmltree::Descendants) {
                 artikel.deliver_time = descen.text().unwrap_or("").to_string();
             }
             "ARTICLE_FEATURES" => {
-                for feature in descen.descendants() {
-                    match feature.tag_name().name() {
+                let mut artikel_feature_group = ArtikelFeatureGroup {
+                    ..Default::default()
+                };
+                for descen2 in descen.descendants() {
+                    match descen2.tag_name().name() {
+                        "REFERENCE_FEATURE_SYSTEM_NAME" => {
+                            artikel_feature_group.sys_name =
+                                descen2.text().unwrap_or("").to_string();
+                        }
+                        "REFERENCE_FEATURE_GROUP_ID" => {
+                            artikel_feature_group.group_id =
+                                descen2.text().unwrap_or("").to_string();
+                        }
                         "FEATURE" => {
                             let mut artikel_feature = ArtikelFeature {
                                 ..Default::default()
                             };
-                            for feature_descen in feature.descendants() {
-                                match feature_descen.tag_name().name() {
+                            for descen3 in descen2.descendants() {
+                                match descen3.tag_name().name() {
                                     "FNAME" => {
                                         artikel_feature.name =
-                                            feature_descen.text().unwrap_or("").to_string();
+                                            descen3.text().unwrap_or("").to_string();
                                     }
                                     "FVALUE" => {
                                         artikel_feature.value =
-                                            feature_descen.text().unwrap_or("").to_string();
+                                            descen3.text().unwrap_or("").to_string();
                                     }
                                     "FUNIT" => {
                                         artikel_feature.unit =
-                                            feature_descen.text().unwrap_or("").to_string();
+                                            descen3.text().unwrap_or("").to_string();
                                     }
                                     _ => (),
                                 }
                             }
-                            artikel.artikel_features.push(artikel_feature);
+                            artikel_feature_group.artikel_features.push(artikel_feature);
                         }
                         _ => (),
                     }
                 }
+                artikel.artikel_feature_groups.push(artikel_feature_group);
             }
             _ => (),
         }
@@ -88,7 +100,7 @@ struct Artikel {
     desc_long: String,
     ean: String,
     deliver_time: String,
-    artikel_features: Vec<ArtikelFeature>,
+    artikel_feature_groups: Vec<ArtikelFeatureGroup>,
 }
 
 impl Default for Artikel {
@@ -99,7 +111,7 @@ impl Default for Artikel {
             desc_long: "".to_string(),
             ean: "".to_string(),
             deliver_time: "".to_string(),
-            artikel_features: Vec::new(),
+            artikel_feature_groups: Vec::new(),
         }
     }
 }
@@ -108,6 +120,23 @@ impl Default for Artikel {
 struct ArtikelPrice {
     id: String,
     price: String,
+}
+
+#[derive(Debug, Clone)]
+struct ArtikelFeatureGroup {
+    sys_name: String,
+    group_id: String,
+    artikel_features: Vec<ArtikelFeature>,
+}
+
+impl Default for ArtikelFeatureGroup {
+    fn default() -> Self {
+        ArtikelFeatureGroup {
+            sys_name: "".to_string(),
+            group_id: "".to_string(),
+            artikel_features: Vec::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
