@@ -3,7 +3,7 @@ use chrono::prelude::*;
 fn main() {
     let start_time = Local::now();
 
-    let temp = std::fs::read_to_string("./files/Boschimp.xml").unwrap();
+    let temp = std::fs::read_to_string("./files/nw_bmecat.xml").unwrap();
     let doc = roxmltree::Document::parse(&temp).unwrap();
 
     for node in doc.descendants() {
@@ -138,6 +138,9 @@ fn create_article_features(descen: roxmltree::Node) -> ArticleFeatureGroup {
                             article_feature.value_details =
                                 descen3.text().unwrap_or("").to_string();
                         }
+                        "VARIANTS" => {
+                            article_feature.article_variants = create_articel_variants(descen3);
+                        }
 
                         _ => (),
                     }
@@ -148,6 +151,44 @@ fn create_article_features(descen: roxmltree::Node) -> ArticleFeatureGroup {
         }
     }
     article_feature_group
+}
+
+fn create_articel_variants(node: roxmltree::Node) -> ArticleVariants {
+    let mut article_variants = ArticleVariants {
+        ..Default::default()
+    };
+    for descen in node.descendants() {
+        match descen.tag_name().name() {
+            "VORDER" => {
+                article_variants.vorder = descen.text().unwrap_or("").to_string();
+            }
+            "VARIANT" => {
+                article_variants
+                    .article_variant
+                    .push(create_article_variant(descen));
+            }
+            _ => (),
+        }
+    }
+    article_variants
+}
+
+fn create_article_variant(node: roxmltree::Node) -> ArticleVariant {
+    let mut article_variant = ArticleVariant {
+        ..Default::default()
+    };
+    for descen in node.descendants() {
+        match descen.tag_name().name() {
+            "FVALUE" => {
+                article_variant.value = descen.text().unwrap_or("").to_string();
+            }
+            "SUPPLIER_AID_SUPPLEMENT" => {
+                article_variant.supplier_aid_supplement = descen.text().unwrap_or("").to_string();
+            }
+            _ => (),
+        }
+    }
+    article_variant
 }
 
 fn create_mime_info(node: roxmltree::Node) -> Vec<Mime> {
@@ -386,6 +427,7 @@ struct ArticleFeature {
     order: String,
     descr: String,
     value_details: String,
+    article_variants: ArticleVariants,
 }
 
 impl Default for ArticleFeature {
@@ -397,6 +439,39 @@ impl Default for ArticleFeature {
             order: "".to_string(),
             descr: "".to_string(),
             value_details: "".to_string(),
+            article_variants: ArticleVariants {
+                ..Default::default()
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ArticleVariants {
+    article_variant: Vec<ArticleVariant>,
+    vorder: String,
+}
+
+impl Default for ArticleVariants {
+    fn default() -> Self {
+        ArticleVariants {
+            article_variant: Vec::new(),
+            vorder: "".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ArticleVariant {
+    value: String,
+    supplier_aid_supplement: String,
+}
+
+impl Default for ArticleVariant {
+    fn default() -> Self {
+        ArticleVariant {
+            value: "".to_string(),
+            supplier_aid_supplement: "".to_string(),
         }
     }
 }
