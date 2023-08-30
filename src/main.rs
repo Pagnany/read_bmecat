@@ -9,11 +9,11 @@ fn main() {
     for node in doc.descendants() {
         match node.tag_name().name() {
             "ARTICLE" => {
-                let temp = create_article(node.descendants());
+                let temp = create_article(node);
                 println!("{:?}", temp);
 
                 // to test with only one article
-                return;
+                break;
             }
             _ => (),
         }
@@ -25,11 +25,11 @@ fn main() {
     println!("Duration: {:?}", duration);
 }
 
-fn create_article(node: roxmltree::Descendants) -> Article {
+fn create_article(node: roxmltree::Node) -> Article {
     let mut article = Article {
         ..Default::default()
     };
-    for descen in node {
+    for descen in node.descendants() {
         match descen.tag_name().name() {
             "SUPPLIER_AID" => {
                 article.id = descen.text().unwrap_or("").to_string();
