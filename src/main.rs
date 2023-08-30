@@ -4,8 +4,6 @@ fn main() {
     let start_time = Local::now();
 
     let temp = std::fs::read_to_string("./files/ELTEN BMEcat 1.2.xml").unwrap();
-    //let temp = std::fs::read_to_string("./files/nw_bmecat.xml").unwrap();
-    println!("XML in memory");
     let doc = roxmltree::Document::parse(&temp).unwrap();
 
     for node in doc.descendants() {
@@ -46,51 +44,52 @@ fn create_artikel(node: roxmltree::Descendants) {
                 artikel.deliver_time = descen.text().unwrap_or("").to_string();
             }
             "ARTICLE_FEATURES" => {
-                let mut artikel_feature_group = ArtikelFeatureGroup {
-                    ..Default::default()
-                };
-                for descen2 in descen.descendants() {
-                    match descen2.tag_name().name() {
-                        "REFERENCE_FEATURE_SYSTEM_NAME" => {
-                            artikel_feature_group.sys_name =
-                                descen2.text().unwrap_or("").to_string();
-                        }
-                        "REFERENCE_FEATURE_GROUP_ID" => {
-                            artikel_feature_group.group_id =
-                                descen2.text().unwrap_or("").to_string();
-                        }
-                        "FEATURE" => {
-                            let mut artikel_feature = ArtikelFeature {
-                                ..Default::default()
-                            };
-                            for descen3 in descen2.descendants() {
-                                match descen3.tag_name().name() {
-                                    "FNAME" => {
-                                        artikel_feature.name =
-                                            descen3.text().unwrap_or("").to_string();
-                                    }
-                                    "FVALUE" => {
-                                        artikel_feature.value =
-                                            descen3.text().unwrap_or("").to_string();
-                                    }
-                                    "FUNIT" => {
-                                        artikel_feature.unit =
-                                            descen3.text().unwrap_or("").to_string();
-                                    }
-                                    _ => (),
-                                }
-                            }
-                            artikel_feature_group.artikel_features.push(artikel_feature);
-                        }
-                        _ => (),
-                    }
-                }
-                artikel.artikel_feature_groups.push(artikel_feature_group);
+                artikel
+                    .artikel_feature_groups
+                    .push(create_artikel_features(descen));
             }
             _ => (),
         }
     }
     println!("{:?}", artikel);
+}
+
+fn create_artikel_features(descen: roxmltree::Node) -> ArtikelFeatureGroup {
+    let mut artikel_feature_group = ArtikelFeatureGroup {
+        ..Default::default()
+    };
+    for descen2 in descen.descendants() {
+        match descen2.tag_name().name() {
+            "REFERENCE_FEATURE_SYSTEM_NAME" => {
+                artikel_feature_group.sys_name = descen2.text().unwrap_or("").to_string();
+            }
+            "REFERENCE_FEATURE_GROUP_ID" => {
+                artikel_feature_group.group_id = descen2.text().unwrap_or("").to_string();
+            }
+            "FEATURE" => {
+                let mut artikel_feature = ArtikelFeature {
+                    ..Default::default()
+                };
+                for descen3 in descen2.descendants() {
+                    match descen3.tag_name().name() {
+                        "FNAME" => {
+                            artikel_feature.name = descen3.text().unwrap_or("").to_string();
+                        }
+                        "FVALUE" => {
+                            artikel_feature.value = descen3.text().unwrap_or("").to_string();
+                        }
+                        "FUNIT" => {
+                            artikel_feature.unit = descen3.text().unwrap_or("").to_string();
+                        }
+                        _ => (),
+                    }
+                }
+                artikel_feature_group.artikel_features.push(artikel_feature);
+            }
+            _ => (),
+        }
+    }
+    artikel_feature_group
 }
 
 #[derive(Debug, Clone)]
