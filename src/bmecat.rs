@@ -4,9 +4,15 @@ pub fn read_bmecat(file: String) -> Vec<Article> {
     let mut articles = Vec::new();
     for node in doc.descendants() {
         match node.tag_name().name() {
-            "ARTICLE" => {
-                let temp = create_article(node);
-                articles.push(temp);
+            "T_NEW_CATALOG" => {
+                for descen in node.descendants() {
+                    match descen.tag_name().name() {
+                        "ARTICLE" => {
+                            articles.push(create_article(descen));
+                        }
+                        _ => (),
+                    }
+                }
             }
             _ => (),
         }
