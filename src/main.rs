@@ -9,7 +9,16 @@ fn main() {
 
     let articles = bmecat::read_bmecat(temp);
 
-    article_picture_to_csv_one_line(articles.clone());
+    //article_picture_to_csv_one_line(articles.clone());
+
+    let mut i = 0;
+    for article in articles {
+        println!("{:?}", article);
+        i += 1;
+        if i > 1 {
+            break;
+        }
+    }
 
     let end_time = Local::now();
     let duration = end_time.signed_duration_since(start_time);

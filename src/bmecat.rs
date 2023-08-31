@@ -41,6 +41,12 @@ fn create_article(node: roxmltree::Node) -> Article {
             "SUPPLIER_ALT_AID" => {
                 article.article_details.supplier_alt_id = descen.text().unwrap_or("").to_string();
             }
+            "BUYER_AID" => {
+                article
+                    .article_details
+                    .buyer_id
+                    .push(descen.text().unwrap_or("").to_string());
+            }
             "MANUFACTURER_AID" => {
                 article.article_details.manufacturer_id = descen.text().unwrap_or("").to_string();
             }
@@ -61,6 +67,18 @@ fn create_article(node: roxmltree::Node) -> Article {
             "DELIVERY_TIME" => {
                 article.article_details.deliver_time = descen.text().unwrap_or("").to_string();
             }
+            "SPECIAL_TREATMENT_CLASS" => {
+                article
+                    .article_details
+                    .special_treatment_class
+                    .push(descen.text().unwrap_or("").to_string());
+            }
+            "KEYWORD" => {
+                article
+                    .article_details
+                    .keywords
+                    .push(descen.text().unwrap_or("").to_string());
+            }
             "REMARKS" => {
                 article.article_details.remarks = descen.text().unwrap_or("").to_string();
             }
@@ -70,6 +88,12 @@ fn create_article(node: roxmltree::Node) -> Article {
             "ARTICLE_ORDER" => {
                 article.article_details.article_order = descen.text().unwrap_or("").to_string();
             }
+            "ARTICLE_STATUS" => {
+                article
+                    .article_details
+                    .article_staus
+                    .push(descen.text().unwrap_or("").to_string());
+            }
             "ARTICLE_ORDER_DETAILS" => {
                 article.article_order_details = create_article_order_details(descen);
             }
@@ -78,7 +102,6 @@ fn create_article(node: roxmltree::Node) -> Article {
                     .article_price_details
                     .push(create_article_price_details(descen));
             }
-
             "ARTICLE_FEATURES" => {
                 article
                     .article_feature_groups
@@ -118,7 +141,9 @@ fn create_article_features(descen: roxmltree::Node) -> ArticleFeatureGroup {
                             article_feature.name = descen3.text().unwrap_or("").to_string();
                         }
                         "FVALUE" => {
-                            article_feature.value = descen3.text().unwrap_or("").to_string();
+                            article_feature
+                                .value
+                                .push(descen3.text().unwrap_or("").to_string());
                         }
                         "FUNIT" => {
                             article_feature.unit = descen3.text().unwrap_or("").to_string();
@@ -374,15 +399,19 @@ pub struct ArtikelDetails {
     pub desc_long: String,
     pub ean: String,
     pub supplier_alt_id: String,
+    pub buyer_id: Vec<String>,
     pub manufacturer_id: String,
     pub manufacturer_name: String,
     pub manufacturer_type_desc: String,
     pub erp_group_buyer: String,
     pub erp_group_supplier: String,
     pub deliver_time: String,
+    pub special_treatment_class: Vec<String>,
     pub remarks: String,
     pub segment: String,
     pub article_order: String,
+    pub keywords: Vec<String>,
+    pub article_staus: Vec<String>,
 }
 
 impl Default for ArtikelDetails {
@@ -392,15 +421,19 @@ impl Default for ArtikelDetails {
             desc_long: "".to_string(),
             ean: "".to_string(),
             supplier_alt_id: "".to_string(),
+            buyer_id: Vec::new(),
             manufacturer_id: "".to_string(),
             manufacturer_name: "".to_string(),
             manufacturer_type_desc: "".to_string(),
             erp_group_buyer: "".to_string(),
             erp_group_supplier: "".to_string(),
             deliver_time: "".to_string(),
+            special_treatment_class: Vec::new(),
             remarks: "".to_string(),
             segment: "".to_string(),
             article_order: "".to_string(),
+            keywords: Vec::new(),
+            article_staus: Vec::new(),
         }
     }
 }
@@ -427,7 +460,7 @@ impl Default for ArticleFeatureGroup {
 #[derive(Debug, Clone)]
 pub struct ArticleFeature {
     pub name: String,
-    pub value: String,
+    pub value: Vec<String>,
     pub unit: String,
     pub order: String,
     pub descr: String,
@@ -439,7 +472,7 @@ impl Default for ArticleFeature {
     fn default() -> Self {
         ArticleFeature {
             name: "".to_string(),
-            value: "".to_string(),
+            value: Vec::new(),
             unit: "".to_string(),
             order: "".to_string(),
             descr: "".to_string(),
