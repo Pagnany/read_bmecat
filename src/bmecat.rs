@@ -325,6 +325,16 @@ fn create_article_price(node: roxmltree::Node) -> ArticlePrice {
     article_price
 }
 
+pub fn get_article_pictures(article: &Article) -> Vec<String> {
+    let mut pictures = Vec::new();
+    for mime in &article.mime_infos {
+        if mime.mime_type == "image/jpeg" || mime.mime_type == "image/png" {
+            pictures.push(mime.mime_source.clone());
+        }
+    }
+    pictures
+}
+
 #[derive(Debug, Clone)]
 pub struct Article {
     pub id: String,

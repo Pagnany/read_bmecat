@@ -1,6 +1,6 @@
 use chrono::prelude::*;
 
-pub mod bmecat;
+mod bmecat;
 
 fn main() {
     let start_time = Local::now();
@@ -9,8 +9,16 @@ fn main() {
 
     let articles = bmecat::read_bmecat(temp);
 
+    let mut count = 0;
+
     for article in articles {
-        println!("{}", article.article_details.desc_short);
+        println!("{}", article.id);
+        println!("{:?}", bmecat::get_article_pictures(&article));
+        count += 1;
+
+        if count > 10 {
+            break;
+        }
     }
 
     let end_time = Local::now();
