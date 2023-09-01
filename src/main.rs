@@ -11,14 +11,10 @@ fn main() {
 
     //article_picture_to_csv_one_line(articles.clone());
 
-    let mut i = 0;
-    for article in articles {
+    articles[2..5].iter().enumerate().for_each(|(i, article)| {
+        println!("{}", i);
         println!("{:?}", article);
-        i += 1;
-        if i > 1 {
-            break;
-        }
-    }
+    });
 
     let end_time = Local::now();
     let duration = end_time.signed_duration_since(start_time);

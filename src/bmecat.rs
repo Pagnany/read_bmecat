@@ -606,3 +606,39 @@ impl Default for Mime {
 
 #[derive(Debug, Clone)]
 pub struct UserDefinedExtensions {}
+
+enum Datatype {
+    String(String),
+    Number(f32),
+    Integer(i32),
+    Float(f32),
+    Boolean(bool),
+    Datetype(String),
+    Timetype(String),
+    Timezonetype(String),
+}
+
+// Countries: 6 characters
+enum Countries {
+    DE,
+}
+
+// currencies: 3 characters
+enum Currencies {
+    EUR,
+}
+
+// languages: 3 characters
+enum Lang {
+    DEU,
+}
+
+// units: max 3 characters
+enum Unit {
+    MTR,
+}
+
+// units: max 3 characters
+enum Punit {
+    C62,
+}
