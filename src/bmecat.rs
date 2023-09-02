@@ -108,7 +108,7 @@ fn create_article(node: roxmltree::Node) -> Article {
                     .push(create_article_features(descen));
             }
             "MIME_INFO" => {
-                article.mime_infos = create_mime_info(descen);
+                article.mime_infos = create_article_mime_info(descen);
             }
             _ => (),
         }
@@ -211,12 +211,12 @@ fn create_article_variant(node: roxmltree::Node) -> ArticleVariant {
     article_variant
 }
 
-fn create_mime_info(node: roxmltree::Node) -> Vec<Mime> {
+fn create_article_mime_info(node: roxmltree::Node) -> Vec<Mime> {
     let mut mime_infos = Vec::new();
     for descen in node.descendants() {
         match descen.tag_name().name() {
             "MIME" => {
-                mime_infos.push(create_mime(descen));
+                mime_infos.push(create_article_mime(descen));
             }
             _ => (),
         }
@@ -224,7 +224,7 @@ fn create_mime_info(node: roxmltree::Node) -> Vec<Mime> {
     mime_infos
 }
 
-fn create_mime(node: roxmltree::Node) -> Mime {
+fn create_article_mime(node: roxmltree::Node) -> Mime {
     let mut mime = Mime {
         ..Default::default()
     };
@@ -606,17 +606,6 @@ impl Default for Mime {
 
 #[derive(Debug, Clone)]
 pub struct UserDefinedExtensions {}
-
-enum Datatype {
-    String(String),
-    Number(f32),
-    Integer(i32),
-    Float(f32),
-    Boolean(bool),
-    Datetype(String),
-    Timetype(String),
-    Timezonetype(String),
-}
 
 // Countries: 6 characters
 enum Countries {
