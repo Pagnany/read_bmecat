@@ -356,16 +356,6 @@ fn create_article_price(node: roxmltree::Node) -> ArticlePrice {
     article_price
 }
 
-pub fn get_article_pictures(article: &Article) -> Vec<String> {
-    let mut pictures = Vec::new();
-    for mime in &article.mime_infos {
-        if mime.mime_type == "image/jpeg" || mime.mime_type == "image/png" {
-            pictures.push(mime.mime_source.clone());
-        }
-    }
-    pictures
-}
-
 #[derive(Debug, Clone)]
 pub struct Article {
     pub id: String,
@@ -374,6 +364,18 @@ pub struct Article {
     pub article_price_details: Vec<ArticlePriceDetails>,
     pub article_feature_groups: Vec<ArticleFeatureGroup>,
     pub mime_infos: Vec<Mime>,
+}
+
+impl Article {
+    pub fn get_pictures(&self) -> Vec<String> {
+        let mut pictures = Vec::new();
+        for mime in &self.mime_infos {
+            if mime.mime_type == "image/jpeg" || mime.mime_type == "image/png" {
+                pictures.push(mime.mime_source.clone());
+            }
+        }
+        pictures
+    }
 }
 
 impl Default for Article {
@@ -606,28 +608,3 @@ impl Default for Mime {
 
 #[derive(Debug, Clone)]
 pub struct UserDefinedExtensions {}
-
-// Countries: 6 characters
-enum Countries {
-    DE,
-}
-
-// currencies: 3 characters
-enum Currencies {
-    EUR,
-}
-
-// languages: 3 characters
-enum Lang {
-    DEU,
-}
-
-// units: max 3 characters
-enum Unit {
-    MTR,
-}
-
-// units: max 3 characters
-enum Punit {
-    C62,
-}
