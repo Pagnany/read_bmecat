@@ -94,8 +94,6 @@ fn insert_article<'env>(
     let mut sql_text =
         "INSERT INTO article (ID, DESC_SHORT, DESC_LONG, EAN, SUP_ALT_ID, MANUF_NAME, MANUF_TYP, ERP_GR_BY, ERP_GR_SUP, DELIV_TIME, REMAKRS, SEGMENT, ORDER) VALUES (".to_string();
 
-    // MAX QUERY LENGTH 498
-
     sql_text.push_str(&format!("'{}',", str_conv(&article.id)));
     sql_text.push_str(&format!(
         "'{}',",
@@ -104,10 +102,8 @@ fn insert_article<'env>(
 
     sql_text.push_str(&format!(
         "'{}',",
-        shorten_string(&article.article_details.desc_long, 50)
+        shorten_string(&article.article_details.desc_long, 250)
     ));
-
-    //sql_text.push_str("'',");
 
     sql_text.push_str(&format!("'{}',", str_conv(&article.article_details.ean)));
     sql_text.push_str(&format!(
@@ -137,10 +133,8 @@ fn insert_article<'env>(
 
     sql_text.push_str(&format!(
         "'{}',",
-        shorten_string(&article.article_details.remarks, 50)
+        shorten_string(&article.article_details.remarks, 250)
     ));
-
-    //sql_text.push_str("'',");
 
     sql_text.push_str(&format!(
         "'{}',",
@@ -168,11 +162,16 @@ fn insert_article<'env>(
 }
 
 fn str_conv(string: &str) -> String {
-    string.replace("'", "").replace(",", "").replace("\n", "")
+    // all chars in Windows-1252 range
+    // removes chars for SQL
+    string
+        .chars()
+        .filter(|c| ((c >= &'!' && c <= &'ÿ') && c != &',' && c != &'\'') || c == &' ')
+        .collect()
 }
 
 fn shorten_string(string: &str, max_len: usize) -> String {
-    let mut temp = string.replace("'", "").replace(",", "").replace("\n", "");
+    let mut temp = str_conv(string);
 
     if temp.len() > max_len {
         let mut truncated = temp.graphemes(true).take(max_len).collect::<String>();
