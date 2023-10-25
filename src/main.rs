@@ -195,15 +195,14 @@ fn insert_mime_article<'env>(
     conn: &Connection<'env, AutocommitOn>,
     article: &crate::bmecat::Article,
 ) -> Result<()> {
-    let art_id = article.id.clone();
-    for mime in article.mime_infos.clone() {
+    for mime in &article.mime_infos {
         let stmt = Statement::with_parent(conn)?;
 
         let mut sql_text =
             "INSERT INTO mime (ART_ID, TYPE, SOURCE, DESC, ALT, PURPOSE, ORDER) VALUES ("
                 .to_string();
 
-        sql_text.push_str(&format!("'{}',", shorten_string(&art_id, 250)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&article.id, 250)));
         sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_type, 250)));
         sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_source, 250)));
         sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_descr, 500)));
