@@ -11,19 +11,28 @@ fn main() -> Result<()> {
     let start_time = Local::now();
     env_logger::init();
 
+    println!("Reading BMEcat file...");
     //let temp = std::fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
     let temp = std::fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
     //let temp = std::fs::read_to_string("./files/ELTEN BMEcat 1.2.xml").expect("Can't read file");
 
+    println!("Connecting to database...");
     // connection to table
     let env = create_environment_v3().map_err(|e| e.unwrap())?;
     let buffer = r#"Driver={Microsoft Visual FoxPro Driver};SourceType=DBF;SourceDB=c:\vfpdb\;Exclusive=No;Collate=Machine;NULL=NO;DELETED=YES;BACKGROUNDFETCH=NO;"#;
     let conn = env.connect_with_connection_string(&buffer)?;
 
+    println!("Parsing BMEcat file...");
     let articles = bmecat::read_bmecat(temp);
+    let articles_count = articles.len();
 
-    articles[..].iter().for_each(|article| {
+    println!("Inserting articles into database...");
+    articles[..].iter().enumerate().for_each(|(i, article)| {
+        if i % 1000 == 0 {
+            println!("{} of {}", i, articles_count);
+        }
         insert_article(&conn, article).unwrap();
+        insert_mime_article(&conn, article).unwrap();
     });
 
     let end_time = Local::now();
@@ -150,9 +159,7 @@ fn insert_article<'env>(
     //println!("{}", sql_text);
 
     let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
-
     let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
-
     match stmt.exec_direct(&s)? {
         Data(_) => (),
         NoData(_) => (),
@@ -182,4 +189,37 @@ fn shorten_string(string: &str, max_len: usize) -> String {
     }
 
     temp
+}
+
+fn insert_mime_article<'env>(
+    conn: &Connection<'env, AutocommitOn>,
+    article: &crate::bmecat::Article,
+) -> Result<()> {
+    let art_id = article.id.clone();
+    for mime in article.mime_infos.clone() {
+        let stmt = Statement::with_parent(conn)?;
+
+        let mut sql_text =
+            "INSERT INTO mime (ART_ID, TYPE, SOURCE, DESC, ALT, PURPOSE, ORDER) VALUES ("
+                .to_string();
+
+        sql_text.push_str(&format!("'{}',", shorten_string(&art_id, 250)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_type, 250)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_source, 250)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_descr, 500)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_alt, 250)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_purpose, 250)));
+        sql_text.push_str(&format!("'{}'", shorten_string(&mime.mime_order, 250)));
+        sql_text.push_str(")");
+
+        //println!("{}", sql_text);
+
+        let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+        let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+        match stmt.exec_direct(&s)? {
+            Data(_) => (),
+            NoData(_) => (),
+        }
+    }
+    Ok(())
 }
