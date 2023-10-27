@@ -43,56 +43,25 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn _execute_statement<'env>(conn: &Connection<'env, AutocommitOn>) -> Result<()> {
-    let stmt = Statement::with_parent(conn)?;
-
-    let sql_text = "select * from Hallodatei".to_string();
-
-    let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
-
-    let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
-
-    let mut count = 1;
-
-    match stmt.exec_direct(&s)? {
-        Data(mut stmt) => {
-            let cols = stmt.num_result_cols()?;
-            while let Some(mut cursor) = stmt.fetch()? {
-                println!("Row {}:", count);
-                for i in 1..=cols {
-                    println!("  Column {}:", i);
-                    let data = cursor.get_data::<Vec<u8>>(i as u16).unwrap().unwrap();
-                    let (result, _, _) = WINDOWS_1252.decode(&data);
-                    let s = result.to_string();
-                    println!("    {}", s);
-                }
-
-                count += 1;
-            }
-        }
-        NoData(_) => println!("Query executed, no data returned"),
-    }
-    println!("Count: {}", count);
-
-    Ok(())
+fn str_conv(string: &str) -> String {
+    // all chars in Windows-1252 range
+    // removes chars for SQL
+    string
+        .chars()
+        .filter(|c| ((c >= &'!' && c <= &'ÿ') && c != &',' && c != &'\'') || c == &' ')
+        .collect()
 }
 
-fn _insert_statement<'env>(conn: &Connection<'env, AutocommitOn>) -> Result<()> {
-    let stmt = Statement::with_parent(conn)?;
-    let sql_text =
-        "INSERT INTO Hallodatei (name, number, logical, id, memo, date, datetime) VALUES ('insert Ä ü ö ß', 1.35, .F., 5, 'Hier können wir auch mal etwas längeres schreiben', DATE(), DATETIME())"
-            .to_string();
-
-    let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
-
-    let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
-
-    match stmt.exec_direct(&s)? {
-        Data(_) => println!("Query executed, data returned"),
-        NoData(_) => println!("Query executed, no data returned"),
+fn shorten_string(string: &str, max_len: usize) -> String {
+    let mut temp = str_conv(string);
+    if temp.len() > max_len {
+        let mut truncated = temp.graphemes(true).take(max_len).collect::<String>();
+        while !truncated.is_char_boundary(truncated.len()) {
+            truncated.pop();
+        }
+        temp = truncated;
     }
-
-    Ok(())
+    temp
 }
 
 fn insert_article<'env>(
@@ -100,20 +69,17 @@ fn insert_article<'env>(
     article: &crate::bmecat::Article,
 ) -> Result<()> {
     let stmt = Statement::with_parent(conn)?;
-    let mut sql_text =
-        "INSERT INTO article (ID, DESC_SHORT, DESC_LONG, EAN, SUP_ALT_ID, MANUF_NAME, MANUF_TYP, ERP_GR_BY, ERP_GR_SUP, DELIV_TIME, REMAKRS, SEGMENT, ORDER) VALUES (".to_string();
 
+    let mut sql_text = "INSERT INTO article VALUES (".to_string();
     sql_text.push_str(&format!("'{}',", str_conv(&article.id)));
     sql_text.push_str(&format!(
         "'{}',",
         str_conv(&article.article_details.desc_short)
     ));
-
     sql_text.push_str(&format!(
         "'{}',",
         shorten_string(&article.article_details.desc_long, 250)
     ));
-
     sql_text.push_str(&format!("'{}',", str_conv(&article.article_details.ean)));
     sql_text.push_str(&format!(
         "'{}',",
@@ -139,12 +105,10 @@ fn insert_article<'env>(
         "'{}',",
         str_conv(&article.article_details.deliver_time)
     ));
-
     sql_text.push_str(&format!(
         "'{}',",
         shorten_string(&article.article_details.remarks, 250)
     ));
-
     sql_text.push_str(&format!(
         "'{}',",
         str_conv(&article.article_details.segment)
@@ -153,7 +117,6 @@ fn insert_article<'env>(
         "'{}'",
         str_conv(&article.article_details.article_order)
     ));
-
     sql_text.push_str(")");
 
     //println!("{}", sql_text);
@@ -168,29 +131,6 @@ fn insert_article<'env>(
     Ok(())
 }
 
-fn str_conv(string: &str) -> String {
-    // all chars in Windows-1252 range
-    // removes chars for SQL
-    string
-        .chars()
-        .filter(|c| ((c >= &'!' && c <= &'ÿ') && c != &',' && c != &'\'') || c == &' ')
-        .collect()
-}
-
-fn shorten_string(string: &str, max_len: usize) -> String {
-    let mut temp = str_conv(string);
-
-    if temp.len() > max_len {
-        let mut truncated = temp.graphemes(true).take(max_len).collect::<String>();
-        while !truncated.is_char_boundary(truncated.len()) {
-            truncated.pop();
-        }
-        temp = truncated;
-    }
-
-    temp
-}
-
 fn insert_mime_article<'env>(
     conn: &Connection<'env, AutocommitOn>,
     article: &crate::bmecat::Article,
@@ -198,10 +138,7 @@ fn insert_mime_article<'env>(
     for mime in &article.mime_infos {
         let stmt = Statement::with_parent(conn)?;
 
-        let mut sql_text =
-            "INSERT INTO mime (ART_ID, TYPE, SOURCE, DESC, ALT, PURPOSE, ORDER) VALUES ("
-                .to_string();
-
+        let mut sql_text = "INSERT INTO mime VALUES (".to_string();
         sql_text.push_str(&format!("'{}',", shorten_string(&article.id, 250)));
         sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_type, 250)));
         sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_source, 250)));
