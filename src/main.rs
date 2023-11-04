@@ -71,51 +71,54 @@ fn insert_article<'env>(
     let stmt = Statement::with_parent(conn)?;
 
     let mut sql_text = "INSERT INTO article VALUES (".to_string();
-    sql_text.push_str(&format!("'{}',", str_conv(&article.id)));
+    sql_text.push_str(&format!("'{}',", shorten_string(&article.id, 50)));
     sql_text.push_str(&format!(
         "'{}',",
-        str_conv(&article.article_details.desc_short)
+        shorten_string(&article.article_details.desc_short, 254)
     ));
     sql_text.push_str(&format!(
         "'{}',",
         shorten_string(&article.article_details.desc_long, 250)
     ));
-    sql_text.push_str(&format!("'{}',", str_conv(&article.article_details.ean)));
     sql_text.push_str(&format!(
         "'{}',",
-        str_conv(&article.article_details.supplier_alt_id)
+        shorten_string(&article.article_details.ean, 13)
     ));
     sql_text.push_str(&format!(
         "'{}',",
-        str_conv(&article.article_details.manufacturer_name)
+        shorten_string(&article.article_details.supplier_alt_id, 50)
     ));
     sql_text.push_str(&format!(
         "'{}',",
-        str_conv(&article.article_details.manufacturer_type_desc)
+        shorten_string(&article.article_details.manufacturer_name, 100)
     ));
     sql_text.push_str(&format!(
         "'{}',",
-        str_conv(&article.article_details.erp_group_buyer)
+        shorten_string(&article.article_details.manufacturer_type_desc, 100)
     ));
     sql_text.push_str(&format!(
         "'{}',",
-        str_conv(&article.article_details.erp_group_supplier)
+        shorten_string(&article.article_details.erp_group_buyer, 50)
     ));
     sql_text.push_str(&format!(
         "'{}',",
-        str_conv(&article.article_details.deliver_time)
+        shorten_string(&article.article_details.erp_group_supplier, 50)
     ));
     sql_text.push_str(&format!(
         "'{}',",
-        shorten_string(&article.article_details.remarks, 250)
+        shorten_string(&article.article_details.deliver_time, 15)
     ));
     sql_text.push_str(&format!(
         "'{}',",
-        str_conv(&article.article_details.segment)
+        shorten_string(&article.article_details.remarks, 254)
+    ));
+    sql_text.push_str(&format!(
+        "'{}',",
+        shorten_string(&article.article_details.segment, 100)
     ));
     sql_text.push_str(&format!(
         "'{}'",
-        str_conv(&article.article_details.article_order)
+        shorten_string(&article.article_details.article_order, 10)
     ));
     sql_text.push_str(")");
 
@@ -139,13 +142,13 @@ fn insert_mime_article<'env>(
         let stmt = Statement::with_parent(conn)?;
 
         let mut sql_text = "INSERT INTO mime VALUES (".to_string();
-        sql_text.push_str(&format!("'{}',", shorten_string(&article.id, 250)));
-        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_type, 250)));
-        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_source, 250)));
-        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_descr, 500)));
-        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_alt, 250)));
-        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_purpose, 250)));
-        sql_text.push_str(&format!("'{}'", shorten_string(&mime.mime_order, 250)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&article.id, 200)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_type, 30)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_source, 254)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_descr, 254)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_alt, 50)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_purpose, 20)));
+        sql_text.push_str(&format!("'{}'", shorten_string(&mime.mime_order, 100)));
         sql_text.push_str(")");
 
         //println!("{}", sql_text);
@@ -175,15 +178,15 @@ fn insert_article_feature_groups<'env>(
         sql_text.push_str(&format!("'{}',", feature_gr_id));
         sql_text.push_str(&format!(
             "'{}',",
-            shorten_string(&feature_group.sys_name, 250)
+            shorten_string(&feature_group.sys_name, 50)
         ));
         sql_text.push_str(&format!(
             "'{}',",
-            shorten_string(&feature_group.group_id, 250)
+            shorten_string(&feature_group.group_id, 60)
         ));
         sql_text.push_str(&format!(
             "'{}'",
-            shorten_string(&feature_group.group_name, 250)
+            shorten_string(&feature_group.group_name, 60)
         ));
         sql_text.push_str(")");
 
@@ -215,17 +218,11 @@ fn insert_article_feature(
         let mut sql_text = "INSERT INTO article_feature VALUES (".to_string();
         sql_text.push_str(&format!("'{}',", feature_gr_id));
         sql_text.push_str(&format!("'{}',", &feature_id));
+        sql_text.push_str(&format!("'{}',", shorten_string(&article_feature.name, 60)));
+        sql_text.push_str(&format!("'{}',", shorten_string(&article_feature.unit, 20)));
         sql_text.push_str(&format!(
             "'{}',",
-            shorten_string(&article_feature.name, 250)
-        ));
-        sql_text.push_str(&format!(
-            "'{}',",
-            shorten_string(&article_feature.unit, 250)
-        ));
-        sql_text.push_str(&format!(
-            "'{}',",
-            shorten_string(&article_feature.order, 250)
+            shorten_string(&article_feature.order, 10)
         ));
         sql_text.push_str(&format!(
             "'{}',",
@@ -261,7 +258,7 @@ fn insert_article_feature_value(
 
         let mut sql_text = "INSERT INTO article_feature_value VALUES (".to_string();
         sql_text.push_str(&format!("'{}',", feature_id));
-        sql_text.push_str(&format!("'{}'", shorten_string(&value, 250)));
+        sql_text.push_str(&format!("'{}'", shorten_string(&value, 60)));
         sql_text.push_str(")");
 
         //println!("{}", sql_text);
