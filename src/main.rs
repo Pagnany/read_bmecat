@@ -9,7 +9,6 @@ mod bmecat;
 
 fn main() -> Result<()> {
     let start_time = Local::now();
-    env_logger::init();
 
     println!("Reading BMEcat file...");
     //let temp = std::fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
@@ -33,6 +32,7 @@ fn main() -> Result<()> {
         }
         insert_article(&conn, article).unwrap();
         insert_mime_article(&conn, article).unwrap();
+        insert_article_feature_groups(&conn, article).unwrap();
     });
 
     let end_time = Local::now();
@@ -146,6 +146,122 @@ fn insert_mime_article<'env>(
         sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_alt, 250)));
         sql_text.push_str(&format!("'{}',", shorten_string(&mime.mime_purpose, 250)));
         sql_text.push_str(&format!("'{}'", shorten_string(&mime.mime_order, 250)));
+        sql_text.push_str(")");
+
+        //println!("{}", sql_text);
+
+        let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+        let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+        match stmt.exec_direct(&s)? {
+            Data(_) => (),
+            NoData(_) => (),
+        }
+    }
+    Ok(())
+}
+
+fn insert_article_feature_groups<'env>(
+    conn: &Connection<'env, AutocommitOn>,
+    article: &crate::bmecat::Article,
+) -> Result<()> {
+    let mut i = 0;
+    for feature_group in &article.article_feature_groups {
+        let stmt = Statement::with_parent(conn)?;
+
+        let feature_gr_id = format!("{}-{}", shorten_string(&article.id, 250), i.to_string());
+
+        let mut sql_text = "INSERT INTO article_feature_group VALUES (".to_string();
+        sql_text.push_str(&format!("'{}',", shorten_string(&article.id, 250)));
+        sql_text.push_str(&format!("'{}',", feature_gr_id));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&feature_group.sys_name, 250)
+        ));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&feature_group.group_id, 250)
+        ));
+        sql_text.push_str(&format!(
+            "'{}'",
+            shorten_string(&feature_group.group_name, 250)
+        ));
+        sql_text.push_str(")");
+
+        //println!("{}", sql_text);
+
+        let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+        let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+        match stmt.exec_direct(&s)? {
+            Data(_) => (),
+            NoData(_) => (),
+        }
+        insert_article_feature(conn, feature_gr_id, &feature_group.article_features)?;
+        i += 1;
+    }
+    Ok(())
+}
+
+fn insert_article_feature(
+    conn: &Connection<AutocommitOn>,
+    feature_gr_id: String,
+    article_features: &Vec<crate::bmecat::ArticleFeature>,
+) -> Result<()> {
+    let mut i = 0;
+    for article_feature in article_features {
+        let stmt = Statement::with_parent(conn)?;
+
+        let feature_id = format!("{}-{}", feature_gr_id, i.to_string());
+
+        let mut sql_text = "INSERT INTO article_feature VALUES (".to_string();
+        sql_text.push_str(&format!("'{}',", feature_gr_id));
+        sql_text.push_str(&format!("'{}',", &feature_id));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_feature.name, 250)
+        ));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_feature.unit, 250)
+        ));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_feature.order, 250)
+        ));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_feature.descr, 250)
+        ));
+        sql_text.push_str(&format!(
+            "'{}'",
+            shorten_string(&article_feature.value_details, 250)
+        ));
+        sql_text.push_str(")");
+
+        //println!("{}", sql_text);
+
+        let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+        let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+        match stmt.exec_direct(&s)? {
+            Data(_) => (),
+            NoData(_) => (),
+        }
+        insert_article_feature_value(conn, feature_id, &article_feature.value)?;
+        i += 1;
+    }
+    Ok(())
+}
+
+fn insert_article_feature_value(
+    conn: &Connection<AutocommitOn>,
+    feature_id: String,
+    feature_values: &Vec<String>,
+) -> Result<()> {
+    for value in feature_values {
+        let stmt = Statement::with_parent(conn)?;
+
+        let mut sql_text = "INSERT INTO article_feature_value VALUES (".to_string();
+        sql_text.push_str(&format!("'{}',", feature_id));
+        sql_text.push_str(&format!("'{}'", shorten_string(&value, 250)));
         sql_text.push_str(")");
 
         //println!("{}", sql_text);
