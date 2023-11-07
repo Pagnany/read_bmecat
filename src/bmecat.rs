@@ -306,7 +306,9 @@ fn create_article_price_details(node: roxmltree::Node) -> ArticlePriceDetails {
                 article_price_details.article_price_type =
                     descen.attribute("price_type").unwrap_or("").to_string();
 
-                article_price_details.article_prices = create_article_price(descen);
+                article_price_details
+                    .article_prices
+                    .push(create_article_price(descen));
             }
             _ => (),
         }
@@ -544,7 +546,7 @@ pub struct ArticlePriceDetails {
     pub start_date: String,
     pub end_date: String,
     pub daily_price: String,
-    pub article_prices: ArticlePrice,
+    pub article_prices: Vec<ArticlePrice>,
     pub article_price_type: String,
 }
 
@@ -554,9 +556,7 @@ impl Default for ArticlePriceDetails {
             start_date: "".to_string(),
             end_date: "".to_string(),
             daily_price: "".to_string(),
-            article_prices: ArticlePrice {
-                ..Default::default()
-            },
+            article_prices: Vec::new(),
             article_price_type: "".to_string(),
         }
     }
@@ -569,6 +569,8 @@ pub struct ArticlePrice {
     pub tax: String,
     pub price_factor: String,
     pub lower_bound: String,
+    pub territory: String,
+    pub price_type: String,
 }
 
 impl Default for ArticlePrice {
@@ -579,6 +581,8 @@ impl Default for ArticlePrice {
             tax: "".to_string(),
             price_factor: "".to_string(),
             lower_bound: "".to_string(),
+            territory: "".to_string(),
+            price_type: "".to_string(),
         }
     }
 }

@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Ok, Result};
 use chrono::prelude::*;
 use encoding_rs::WINDOWS_1252;
 use odbc::*;
@@ -30,9 +30,11 @@ fn main() -> Result<()> {
         if i % 1000 == 0 {
             println!("{} of {}", i, articles_count);
         }
-        insert_article(&conn, article).unwrap();
-        insert_mime_article(&conn, article).unwrap();
-        insert_article_feature_groups(&conn, article).unwrap();
+        //insert_article(&conn, article).unwrap();
+        //insert_mime_article(&conn, article).unwrap();
+        //insert_article_feature_groups(&conn, article).unwrap();
+        //insert_article_order_details(&conn, article).unwrap();
+        insert_article_price_details(&conn, article).unwrap();
     });
 
     let end_time = Local::now();
@@ -269,6 +271,90 @@ fn insert_article_feature_value(
             Data(_) => (),
             NoData(_) => (),
         }
+    }
+    Ok(())
+}
+
+fn insert_article_order_details(
+    conn: &Connection<AutocommitOn>,
+    article: &crate::bmecat::Article,
+) -> Result<()> {
+    let stmt = Statement::with_parent(conn)?;
+
+    let mut sql_text = "INSERT INTO article_order_details VALUES (".to_string();
+    sql_text.push_str(&format!("'{}',", shorten_string(&article.id, 50)));
+    sql_text.push_str(&format!(
+        "'{}',",
+        shorten_string(&article.article_order_details.order_unit, 3)
+    ));
+    sql_text.push_str(&format!(
+        "'{}',",
+        shorten_string(&article.article_order_details.content_unit, 3)
+    ));
+    sql_text.push_str(&format!(
+        "'{}',",
+        shorten_string(&article.article_order_details.no_cu_per_ou, 10)
+    ));
+    sql_text.push_str(&format!(
+        "'{}',",
+        shorten_string(&article.article_order_details.price_quantity, 10)
+    ));
+    sql_text.push_str(&format!(
+        "'{}',",
+        shorten_string(&article.article_order_details.quantity_min, 10)
+    ));
+    sql_text.push_str(&format!(
+        "'{}'",
+        shorten_string(&article.article_order_details.quantity_interval, 10)
+    ));
+    sql_text.push_str(")");
+
+    //println!("{}", sql_text);
+
+    let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+    let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+    match stmt.exec_direct(&s)? {
+        Data(_) => (),
+        NoData(_) => (),
+    }
+
+    Ok(())
+}
+
+fn insert_article_price_details(
+    conn: &Connection<AutocommitOn>,
+    article: &crate::bmecat::Article,
+) -> Result<()> {
+    let mut i = 0;
+    for article_price_detail in &article.article_price_details {
+        let stmt = Statement::with_parent(conn)?;
+
+        let mut sql_text = "INSERT INTO article_price_details VALUES (".to_string();
+        sql_text.push_str(&format!("'{}',", &article.id));
+        sql_text.push_str(&format!("'{}-{}',", &article.id, &i.to_string()));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_price_detail.start_date, 20)
+        ));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_price_detail.end_date, 20)
+        ));
+        sql_text.push_str(&format!(
+            "'{}'",
+            shorten_string(&article_price_detail.daily_price, 10)
+        ));
+        sql_text.push_str(")");
+
+        //println!("{}", sql_text);
+
+        let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+        let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+        match stmt.exec_direct(&s)? {
+            Data(_) => (),
+            NoData(_) => (),
+        }
+        i += 1;
     }
     Ok(())
 }
