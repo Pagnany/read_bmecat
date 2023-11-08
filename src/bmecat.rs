@@ -303,12 +303,11 @@ fn create_article_price_details(node: roxmltree::Node) -> ArticlePriceDetails {
                 article_price_details.daily_price = descen.text().unwrap_or("").to_string();
             }
             "ARTICLE_PRICE" => {
-                article_price_details.article_price_type =
-                    descen.attribute("price_type").unwrap_or("").to_string();
+                let article_price_type = descen.attribute("price_type").unwrap_or("").to_string();
 
                 article_price_details
                     .article_prices
-                    .push(create_article_price(descen));
+                    .push(create_article_price(descen, article_price_type.clone()));
             }
             _ => (),
         }
@@ -329,7 +328,7 @@ fn create_date(node: roxmltree::Node) -> String {
     date
 }
 
-fn create_article_price(node: roxmltree::Node) -> ArticlePrice {
+fn create_article_price(node: roxmltree::Node, price_type: String) -> ArticlePrice {
     let mut article_price = ArticlePrice {
         ..Default::default()
     };
@@ -351,10 +350,15 @@ fn create_article_price(node: roxmltree::Node) -> ArticlePrice {
             "LOWER_BOUND" => {
                 article_price.lower_bound = descen.text().unwrap_or("").to_string();
             }
+            "TERRITORY" => {
+                article_price
+                    .territory
+                    .push(descen.text().unwrap_or("").to_string());
+            }
             _ => (),
         }
     }
-
+    article_price.price_type = price_type;
     article_price
 }
 
@@ -547,7 +551,6 @@ pub struct ArticlePriceDetails {
     pub end_date: String,
     pub daily_price: String,
     pub article_prices: Vec<ArticlePrice>,
-    pub article_price_type: String,
 }
 
 impl Default for ArticlePriceDetails {
@@ -557,7 +560,6 @@ impl Default for ArticlePriceDetails {
             end_date: "".to_string(),
             daily_price: "".to_string(),
             article_prices: Vec::new(),
-            article_price_type: "".to_string(),
         }
     }
 }
@@ -569,8 +571,8 @@ pub struct ArticlePrice {
     pub tax: String,
     pub price_factor: String,
     pub lower_bound: String,
-    pub territory: String,
     pub price_type: String,
+    pub territory: Vec<String>,
 }
 
 impl Default for ArticlePrice {
@@ -581,8 +583,8 @@ impl Default for ArticlePrice {
             tax: "".to_string(),
             price_factor: "".to_string(),
             lower_bound: "".to_string(),
-            territory: "".to_string(),
             price_type: "".to_string(),
+            territory: Vec::new(),
         }
     }
 }

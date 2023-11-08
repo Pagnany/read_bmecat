@@ -11,8 +11,8 @@ fn main() -> Result<()> {
     let start_time = Local::now();
 
     println!("Reading BMEcat file...");
-    //let temp = std::fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
-    let temp = std::fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
+    let temp = std::fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
+    //let temp = std::fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
     //let temp = std::fs::read_to_string("./files/ELTEN BMEcat 1.2.xml").expect("Can't read file");
 
     println!("Connecting to database...");
@@ -30,10 +30,10 @@ fn main() -> Result<()> {
         if i % 1000 == 0 {
             println!("{} of {}", i, articles_count);
         }
-        //insert_article(&conn, article).unwrap();
-        //insert_mime_article(&conn, article).unwrap();
-        //insert_article_feature_groups(&conn, article).unwrap();
-        //insert_article_order_details(&conn, article).unwrap();
+        insert_article(&conn, article).unwrap();
+        insert_mime_article(&conn, article).unwrap();
+        insert_article_feature_groups(&conn, article).unwrap();
+        insert_article_order_details(&conn, article).unwrap();
         insert_article_price_details(&conn, article).unwrap();
     });
 
@@ -329,9 +329,11 @@ fn insert_article_price_details(
     for article_price_detail in &article.article_price_details {
         let stmt = Statement::with_parent(conn)?;
 
+        let article_price_detail_id = format!("{}-{}", &article.id, i.to_string());
+
         let mut sql_text = "INSERT INTO article_price_details VALUES (".to_string();
         sql_text.push_str(&format!("'{}',", &article.id));
-        sql_text.push_str(&format!("'{}-{}',", &article.id, &i.to_string()));
+        sql_text.push_str(&format!("'{}',", &article_price_detail_id));
         sql_text.push_str(&format!(
             "'{}',",
             shorten_string(&article_price_detail.start_date, 20)
@@ -353,6 +355,79 @@ fn insert_article_price_details(
         match stmt.exec_direct(&s)? {
             Data(_) => (),
             NoData(_) => (),
+        }
+        insert_article_prices(
+            conn,
+            &article_price_detail.article_prices,
+            article_price_detail_id,
+        )?;
+        i += 1;
+    }
+    Ok(())
+}
+
+fn insert_article_prices(
+    conn: &Connection<AutocommitOn>,
+    article_prices: &Vec<crate::bmecat::ArticlePrice>,
+    article_price_detail_id: String,
+) -> Result<()> {
+    let mut i = 0;
+    for article_price in article_prices {
+        let stmt = Statement::with_parent(conn)?;
+
+        let price_id = format!("{}-{}", &article_price_detail_id, i.to_string());
+
+        let mut sql_text = "INSERT INTO article_price VALUES (".to_string();
+        sql_text.push_str(&format!("'{}',", &price_id));
+        sql_text.push_str(&format!("'{}',", &article_price_detail_id));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_price.price_amount, 10)
+        ));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_price.price_currency, 3)
+        ));
+        sql_text.push_str(&format!("'{}',", shorten_string(&article_price.tax, 10)));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_price.price_factor, 10)
+        ));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_price.lower_bound, 10)
+        ));
+        sql_text.push_str(&format!(
+            "'{}'",
+            shorten_string(&article_price.price_type, 50)
+        ));
+
+        sql_text.push_str(")");
+
+        //println!("{}", sql_text);
+
+        let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+        let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+        match stmt.exec_direct(&s)? {
+            Data(_) => (),
+            NoData(_) => (),
+        }
+
+        for territory in &article_price.territory {
+            let stmt = Statement::with_parent(conn)?;
+            let mut sql_text = "INSERT INTO article_price_territory VALUES (".to_string();
+            sql_text.push_str(&format!("'{}',", &price_id));
+            sql_text.push_str(&format!("'{}'", &territory));
+            sql_text.push_str(")");
+
+            //println!("{}", sql_text);
+
+            let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+            let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+            match stmt.exec_direct(&s)? {
+                Data(_) => (),
+                NoData(_) => (),
+            }
         }
         i += 1;
     }
