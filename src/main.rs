@@ -11,8 +11,8 @@ fn main() -> Result<()> {
     let start_time = Local::now();
 
     println!("Reading BMEcat file...");
-    let temp = std::fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
-    //let temp = std::fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
+    //let temp = std::fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
+    let temp = std::fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
     //let temp = std::fs::read_to_string("./files/ELTEN BMEcat 1.2.xml").expect("Can't read file");
 
     println!("Connecting to database...");
@@ -153,8 +153,6 @@ fn insert_mime_article<'env>(
         sql_text.push_str(&format!("'{}'", shorten_string(&mime.mime_order, 100)));
         sql_text.push_str(")");
 
-        //println!("{}", sql_text);
-
         let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
         let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
         match stmt.exec_direct(&s)? {
@@ -191,8 +189,6 @@ fn insert_article_feature_groups<'env>(
             shorten_string(&feature_group.group_name, 60)
         ));
         sql_text.push_str(")");
-
-        //println!("{}", sql_text);
 
         let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
         let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
@@ -236,15 +232,16 @@ fn insert_article_feature(
         ));
         sql_text.push_str(")");
 
-        //println!("{}", sql_text);
-
         let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
         let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
         match stmt.exec_direct(&s)? {
             Data(_) => (),
             NoData(_) => (),
         }
-        insert_article_feature_value(conn, feature_id, &article_feature.value)?;
+        if article_feature.article_variants.article_variant.len() > 0 {
+            insert_article_variants(conn, &feature_id, &article_feature.article_variants)?;
+        }
+        insert_article_feature_value(conn, &feature_id, &article_feature.value)?;
         i += 1;
     }
     Ok(())
@@ -252,7 +249,7 @@ fn insert_article_feature(
 
 fn insert_article_feature_value(
     conn: &Connection<AutocommitOn>,
-    feature_id: String,
+    feature_id: &String,
     feature_values: &Vec<String>,
 ) -> Result<()> {
     for value in feature_values {
@@ -262,8 +259,6 @@ fn insert_article_feature_value(
         sql_text.push_str(&format!("'{}',", feature_id));
         sql_text.push_str(&format!("'{}'", shorten_string(&value, 60)));
         sql_text.push_str(")");
-
-        //println!("{}", sql_text);
 
         let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
         let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
@@ -309,8 +304,6 @@ fn insert_article_order_details(
     ));
     sql_text.push_str(")");
 
-    //println!("{}", sql_text);
-
     let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
     let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
     match stmt.exec_direct(&s)? {
@@ -347,8 +340,6 @@ fn insert_article_price_details(
             shorten_string(&article_price_detail.daily_price, 10)
         ));
         sql_text.push_str(")");
-
-        //println!("{}", sql_text);
 
         let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
         let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
@@ -404,8 +395,6 @@ fn insert_article_prices(
 
         sql_text.push_str(")");
 
-        //println!("{}", sql_text);
-
         let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
         let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
         match stmt.exec_direct(&s)? {
@@ -420,14 +409,74 @@ fn insert_article_prices(
             sql_text.push_str(&format!("'{}'", &territory));
             sql_text.push_str(")");
 
-            //println!("{}", sql_text);
-
             let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
             let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
             match stmt.exec_direct(&s)? {
                 Data(_) => (),
                 NoData(_) => (),
             }
+        }
+        i += 1;
+    }
+    Ok(())
+}
+
+fn insert_article_variants(
+    conn: &Connection<AutocommitOn>,
+    feature_id: &String,
+    article_variants: &crate::bmecat::ArticleVariants,
+) -> Result<()> {
+    let stmt = Statement::with_parent(conn)?;
+
+    let variant_id = format!("{}-{}", feature_id, 0.to_string());
+
+    let mut sql_text = "INSERT INTO article_variants VALUES (".to_string();
+    sql_text.push_str(&format!("'{}',", feature_id));
+    sql_text.push_str(&format!(
+        "'{}'",
+        shorten_string(&article_variants.vorder, 10)
+    ));
+    sql_text.push_str(")");
+
+    let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+    let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+    match stmt.exec_direct(&s)? {
+        Data(_) => (),
+        NoData(_) => (),
+    }
+    insert_article_variants_values(conn, &variant_id, &article_variants.article_variant)?;
+    Ok(())
+}
+
+fn insert_article_variants_values(
+    conn: &Connection<AutocommitOn>,
+    variant_id: &String,
+    article_variants: &Vec<crate::bmecat::ArticleVariant>,
+) -> Result<()> {
+    let mut i = 0;
+    for article_variant in article_variants {
+        let stmt = Statement::with_parent(conn)?;
+
+        let variant_value_id = format!("{}-{}", variant_id, i.to_string());
+
+        let mut sql_text = "INSERT INTO article_variant VALUES (".to_string();
+        sql_text.push_str(&format!("'{}',", variant_id));
+        sql_text.push_str(&format!("'{}',", &variant_value_id));
+        sql_text.push_str(&format!(
+            "'{}',",
+            shorten_string(&article_variant.value, 60)
+        ));
+        sql_text.push_str(&format!(
+            "'{}'",
+            shorten_string(&article_variant.supplier_aid_supplement, 32)
+        ));
+        sql_text.push_str(")");
+
+        let (encode, _, _) = WINDOWS_1252.encode(&sql_text);
+        let s = unsafe { String::from_utf8_unchecked(encode.to_vec()) };
+        match stmt.exec_direct(&s)? {
+            Data(_) => (),
+            NoData(_) => (),
         }
         i += 1;
     }
