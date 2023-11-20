@@ -614,3 +614,51 @@ impl Default for Mime {
 
 #[derive(Debug, Clone)]
 pub struct UserDefinedExtensions {}
+
+#[derive(Debug, Clone)]
+pub struct CatalogGroupSystem {
+    pub group_system_id: String,
+    pub group_system_name: String,
+    pub catalog_structure: Vec<String>,
+    pub group_system_descr: String,
+}
+
+impl Default for CatalogGroupSystem {
+    fn default() -> Self {
+        CatalogGroupSystem {
+            group_system_id: "".to_string(),
+            group_system_name: "".to_string(),
+            catalog_structure: Vec::new(),
+            group_system_descr: "".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct CatalogStructure {
+    pub group_id: String,
+    pub group_name: String,
+    pub group_description: String,
+    pub parent_id: String,
+    pub group_order: String,
+    pub mime_info: Mime,
+    pub user_defined_extensions: UserDefinedExtensions,
+    pub keyword: String,
+}
+
+impl Default for CatalogStructure {
+    fn default() -> Self {
+        CatalogStructure {
+            group_id: "".to_string(),
+            group_name: "".to_string(),
+            group_description: "".to_string(),
+            parent_id: "".to_string(),
+            group_order: "".to_string(),
+            mime_info: Mime {
+                ..Default::default()
+            },
+            user_defined_extensions: UserDefinedExtensions {},
+            keyword: "".to_string(),
+        }
+    }
+}
