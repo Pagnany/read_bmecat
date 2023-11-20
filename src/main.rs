@@ -22,20 +22,23 @@ fn main() -> Result<()> {
     let conn = env.connect_with_connection_string(&buffer)?;
 
     println!("Parsing BMEcat file...");
-    let articles = bmecat::read_bmecat(temp);
-    let articles_count = articles.len();
+    let bmecat_catalog = bmecat::read_bmecat(temp);
+    let articles_count = bmecat_catalog.article.len();
 
     println!("Inserting articles into database...");
-    articles[..].iter().enumerate().for_each(|(i, article)| {
-        if i % 1000 == 0 {
-            println!("{} of {}", i, articles_count);
-        }
-        insert_article(&conn, article).unwrap();
-        insert_mime_article(&conn, article).unwrap();
-        insert_article_feature_groups(&conn, article).unwrap();
-        insert_article_order_details(&conn, article).unwrap();
-        insert_article_price_details(&conn, article).unwrap();
-    });
+    bmecat_catalog.article[..100]
+        .iter()
+        .enumerate()
+        .for_each(|(i, article)| {
+            if i % 1000 == 0 {
+                println!("{} of {}", i, articles_count);
+            }
+            insert_article(&conn, article).unwrap();
+            insert_mime_article(&conn, article).unwrap();
+            insert_article_feature_groups(&conn, article).unwrap();
+            insert_article_order_details(&conn, article).unwrap();
+            insert_article_price_details(&conn, article).unwrap();
+        });
 
     let end_time = Local::now();
     let duration = end_time.signed_duration_since(start_time);

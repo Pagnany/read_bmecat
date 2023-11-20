@@ -1,15 +1,20 @@
-pub fn read_bmecat(file: String) -> Vec<Article> {
+pub fn read_bmecat(file: String) -> TNewCatalog {
     let doc = roxmltree::Document::parse(&file).unwrap();
-
-    let mut articles = Vec::new();
+    let mut tnewcatalog = TNewCatalog {
+        ..Default::default()
+    };
     for node in doc.descendants() {
         match node.tag_name().name() {
             "T_NEW_CATALOG" => {
                 for descen in node.descendants() {
                     match descen.tag_name().name() {
+                        "FEATURE_SYSTEM" => {}
+                        "CLASSIFICATION_SYSTEM" => {}
+                        "CATALOG_GROUP_SYSTEM" => {}
                         "ARTICLE" => {
-                            articles.push(create_article(descen));
+                            tnewcatalog.article.push(create_article(descen));
                         }
+                        "ARTICLE_TO_CATALOGGROUP_MAP" => {}
                         _ => (),
                     }
                 }
@@ -17,7 +22,7 @@ pub fn read_bmecat(file: String) -> Vec<Article> {
             _ => (),
         }
     }
-    articles
+    tnewcatalog
 }
 
 fn create_article(node: roxmltree::Node) -> Article {
@@ -662,3 +667,66 @@ impl Default for CatalogStructure {
         }
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct TNewCatalog {
+    pub feature_system: Vec<FeatureSystem>,
+    pub classification_system: Vec<ClassificationSystem>,
+    pub catalog_group_system: CatalogGroupSystem,
+    pub article: Vec<Article>,
+    pub article_to_cataloggroup_map: Vec<ArticleToCatalogGroup>,
+}
+
+impl Default for TNewCatalog {
+    fn default() -> Self {
+        TNewCatalog {
+            feature_system: Vec::new(),
+            classification_system: Vec::new(),
+            catalog_group_system: CatalogGroupSystem {
+                ..Default::default()
+            },
+            article: Vec::new(),
+            article_to_cataloggroup_map: Vec::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FeatureSystem {
+    pub feature_system_name: String,
+    pub feature_system_descr: String,
+    pub feature_group: Vec<FeatureGroup>,
+}
+
+impl Default for FeatureSystem {
+    fn default() -> Self {
+        FeatureSystem {
+            feature_system_name: "".to_string(),
+            feature_system_descr: "".to_string(),
+            feature_group: Vec::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ClassificationSystem {}
+
+#[derive(Debug, Clone)]
+pub struct ArticleToCatalogGroup {
+    pub art_id: String,
+    pub catalog_group_id: String,
+    pub article_to_cataloggroup_map_order: String,
+}
+
+impl Default for ArticleToCatalogGroup {
+    fn default() -> Self {
+        ArticleToCatalogGroup {
+            art_id: "".to_string(),
+            catalog_group_id: "".to_string(),
+            article_to_cataloggroup_map_order: "".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FeatureGroup {}
