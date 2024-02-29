@@ -15,24 +15,29 @@ fn main() -> Result<()> {
     let temp = std::fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
     //let temp = std::fs::read_to_string("./files/ELTEN BMEcat 1.2.xml").expect("Can't read file");
 
+    println!("Parsing BMEcat file...");
+    let bmecat_catalog = bmecat::read_bmecat(temp);
+    let articles_count = bmecat_catalog.article.len();
+
     println!("Connecting to database...");
     // connection to table
     let env = create_environment_v3().map_err(|e| e.unwrap())?;
     let buffer = r#"Driver={Microsoft Visual FoxPro Driver};SourceType=DBF;SourceDB=c:\vfpdb\;Exclusive=No;Collate=Machine;NULL=NO;DELETED=YES;BACKGROUNDFETCH=NO;"#;
     let conn = env.connect_with_connection_string(&buffer)?;
 
-    println!("Parsing BMEcat file...");
-    let bmecat_catalog = bmecat::read_bmecat(temp);
-    let articles_count = bmecat_catalog.article.len();
+    let mut tempcounter = 0;
 
     println!("Inserting articles into database...");
-    bmecat_catalog.article[..100]
+    bmecat_catalog
+        .article
         .iter()
         .enumerate()
         .for_each(|(i, article)| {
-            if i % 1000 == 0 {
+            if tempcounter == 1000 {
                 println!("{} of {}", i, articles_count);
+                tempcounter = 0;
             }
+            tempcounter += 1;
             insert_article(&conn, article).unwrap();
             insert_mime_article(&conn, article).unwrap();
             insert_article_feature_groups(&conn, article).unwrap();

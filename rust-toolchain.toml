@@ -1,2 +1,2 @@
 [toolchain]
-channel = "stable-i686-pc-windows-gnu"
+channel = "stable-i686-pc-windows-msvc"
