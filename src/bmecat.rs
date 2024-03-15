@@ -367,7 +367,7 @@ fn create_article_price(node: roxmltree::Node, price_type: String) -> ArticlePri
     article_price
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Article {
     pub id: String,
     pub article_details: ArtikelDetails,
@@ -389,24 +389,7 @@ impl Article {
     }
 }
 
-impl Default for Article {
-    fn default() -> Self {
-        Article {
-            id: "".to_string(),
-            article_details: ArtikelDetails {
-                ..Default::default()
-            },
-            article_price_details: Vec::new(),
-            article_order_details: ArticleOrderDetails {
-                ..Default::default()
-            },
-            article_feature_groups: Vec::new(),
-            mime_infos: Vec::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArtikelDetails {
     pub desc_short: String,
     pub desc_long: String,
@@ -427,31 +410,7 @@ pub struct ArtikelDetails {
     pub article_staus: Vec<String>,
 }
 
-impl Default for ArtikelDetails {
-    fn default() -> Self {
-        ArtikelDetails {
-            desc_short: "".to_string(),
-            desc_long: "".to_string(),
-            ean: "".to_string(),
-            supplier_alt_id: "".to_string(),
-            buyer_id: Vec::new(),
-            manufacturer_id: "".to_string(),
-            manufacturer_name: "".to_string(),
-            manufacturer_type_desc: "".to_string(),
-            erp_group_buyer: "".to_string(),
-            erp_group_supplier: "".to_string(),
-            deliver_time: "".to_string(),
-            special_treatment_class: Vec::new(),
-            remarks: "".to_string(),
-            segment: "".to_string(),
-            article_order: "".to_string(),
-            keywords: Vec::new(),
-            article_staus: Vec::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArticleFeatureGroup {
     pub sys_name: String,
     pub group_id: String,
@@ -459,18 +418,7 @@ pub struct ArticleFeatureGroup {
     pub article_features: Vec<ArticleFeature>,
 }
 
-impl Default for ArticleFeatureGroup {
-    fn default() -> Self {
-        ArticleFeatureGroup {
-            sys_name: "".to_string(),
-            group_id: "".to_string(),
-            group_name: "".to_string(),
-            article_features: Vec::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArticleFeature {
     pub name: String,
     pub value: Vec<String>,
@@ -481,53 +429,19 @@ pub struct ArticleFeature {
     pub article_variants: ArticleVariants,
 }
 
-impl Default for ArticleFeature {
-    fn default() -> Self {
-        ArticleFeature {
-            name: "".to_string(),
-            value: Vec::new(),
-            unit: "".to_string(),
-            order: "".to_string(),
-            descr: "".to_string(),
-            value_details: "".to_string(),
-            article_variants: ArticleVariants {
-                ..Default::default()
-            },
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArticleVariants {
     pub article_variant: Vec<ArticleVariant>,
     pub vorder: String,
 }
 
-impl Default for ArticleVariants {
-    fn default() -> Self {
-        ArticleVariants {
-            article_variant: Vec::new(),
-            vorder: "".to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArticleVariant {
     pub value: String,
     pub supplier_aid_supplement: String,
 }
 
-impl Default for ArticleVariant {
-    fn default() -> Self {
-        ArticleVariant {
-            value: "".to_string(),
-            supplier_aid_supplement: "".to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArticleOrderDetails {
     pub order_unit: String,
     pub content_unit: String,
@@ -537,20 +451,7 @@ pub struct ArticleOrderDetails {
     pub quantity_interval: String,
 }
 
-impl Default for ArticleOrderDetails {
-    fn default() -> Self {
-        ArticleOrderDetails {
-            order_unit: "".to_string(),
-            content_unit: "".to_string(),
-            no_cu_per_ou: "".to_string(),
-            price_quantity: "".to_string(),
-            quantity_min: "".to_string(),
-            quantity_interval: "".to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArticlePriceDetails {
     pub start_date: String,
     pub end_date: String,
@@ -558,18 +459,7 @@ pub struct ArticlePriceDetails {
     pub article_prices: Vec<ArticlePrice>,
 }
 
-impl Default for ArticlePriceDetails {
-    fn default() -> Self {
-        ArticlePriceDetails {
-            start_date: "".to_string(),
-            end_date: "".to_string(),
-            daily_price: "".to_string(),
-            article_prices: Vec::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArticlePrice {
     pub price_amount: String,
     pub price_currency: String,
@@ -580,21 +470,7 @@ pub struct ArticlePrice {
     pub territory: Vec<String>,
 }
 
-impl Default for ArticlePrice {
-    fn default() -> Self {
-        ArticlePrice {
-            price_amount: "".to_string(),
-            price_currency: "".to_string(),
-            tax: "".to_string(),
-            price_factor: "".to_string(),
-            lower_bound: "".to_string(),
-            price_type: "".to_string(),
-            territory: Vec::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Mime {
     pub mime_type: String,
     pub mime_source: String,
@@ -604,23 +480,10 @@ pub struct Mime {
     pub mime_order: String,
 }
 
-impl Default for Mime {
-    fn default() -> Self {
-        Mime {
-            mime_type: "".to_string(),
-            mime_source: "".to_string(),
-            mime_descr: "".to_string(),
-            mime_alt: "".to_string(),
-            mime_purpose: "".to_string(),
-            mime_order: "".to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct UserDefinedExtensions {}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct CatalogGroupSystem {
     pub group_system_id: String,
     pub group_system_name: String,
@@ -628,18 +491,7 @@ pub struct CatalogGroupSystem {
     pub group_system_descr: String,
 }
 
-impl Default for CatalogGroupSystem {
-    fn default() -> Self {
-        CatalogGroupSystem {
-            group_system_id: "".to_string(),
-            group_system_name: "".to_string(),
-            catalog_structure: Vec::new(),
-            group_system_descr: "".to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct CatalogStructure {
     pub group_id: String,
     pub group_name: String,
@@ -651,24 +503,7 @@ pub struct CatalogStructure {
     pub keyword: String,
 }
 
-impl Default for CatalogStructure {
-    fn default() -> Self {
-        CatalogStructure {
-            group_id: "".to_string(),
-            group_name: "".to_string(),
-            group_description: "".to_string(),
-            parent_id: "".to_string(),
-            group_order: "".to_string(),
-            mime_info: Mime {
-                ..Default::default()
-            },
-            user_defined_extensions: UserDefinedExtensions {},
-            keyword: "".to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TNewCatalog {
     pub feature_system: Vec<FeatureSystem>,
     pub classification_system: Vec<ClassificationSystem>,
@@ -677,56 +512,22 @@ pub struct TNewCatalog {
     pub article_to_cataloggroup_map: Vec<ArticleToCatalogGroup>,
 }
 
-impl Default for TNewCatalog {
-    fn default() -> Self {
-        TNewCatalog {
-            feature_system: Vec::new(),
-            classification_system: Vec::new(),
-            catalog_group_system: CatalogGroupSystem {
-                ..Default::default()
-            },
-            article: Vec::new(),
-            article_to_cataloggroup_map: Vec::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FeatureSystem {
     pub feature_system_name: String,
     pub feature_system_descr: String,
     pub feature_group: Vec<FeatureGroup>,
 }
 
-impl Default for FeatureSystem {
-    fn default() -> Self {
-        FeatureSystem {
-            feature_system_name: "".to_string(),
-            feature_system_descr: "".to_string(),
-            feature_group: Vec::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ClassificationSystem {}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ArticleToCatalogGroup {
     pub art_id: String,
     pub catalog_group_id: String,
     pub article_to_cataloggroup_map_order: String,
 }
 
-impl Default for ArticleToCatalogGroup {
-    fn default() -> Self {
-        ArticleToCatalogGroup {
-            art_id: "".to_string(),
-            catalog_group_id: "".to_string(),
-            article_to_cataloggroup_map_order: "".to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FeatureGroup {}
