@@ -3,21 +3,26 @@ use chrono::prelude::*;
 use encoding_rs::WINDOWS_1252;
 use odbc::*;
 use odbc_safe::AutocommitOn;
+use std::fs;
+use std::io;
+use std::path::Path;
 use unicode_segmentation::UnicodeSegmentation;
-
 mod bmecat;
 
 fn main() -> Result<()> {
     let start_time = Local::now();
 
     println!("Reading BMEcat file...");
-    //let temp = std::fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
-    let temp = std::fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
-    //let temp = std::fs::read_to_string("./files/ELTEN BMEcat 1.2.xml").expect("Can't read file");
+    //let temp = fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
+    let temp = fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
+    //let temp fs::read_to_string("./files/ELTEN BMEcat 1.2.xml").expect("Can't read file");
 
     println!("Parsing BMEcat file...");
     let bmecat_catalog = bmecat::read_bmecat(temp);
     let articles_count = bmecat_catalog.article.len();
+
+    println!("Copy Tables");
+    let _ = copy_files(Path::new("./foxprodbs/"), Path::new("C:/vfpdb/"));
 
     println!("Connecting to database...");
     // connection to table
@@ -487,6 +492,24 @@ fn insert_article_variants_values(
             NoData(_) => (),
         }
         i += 1;
+    }
+    Ok(())
+}
+
+fn copy_files(source_dir: &Path, dest_dir: &Path) -> Result<()> {
+    for entry in fs::read_dir(source_dir)? {
+        let entry = entry?;
+        let source_path = entry.path();
+
+        let file_name = source_path
+            .file_name()
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Invalid file name"))?;
+
+        let dest_path = dest_dir.join(file_name);
+
+        if entry.file_type()?.is_file() {
+            fs::copy(&source_path, &dest_path)?;
+        }
     }
     Ok(())
 }
