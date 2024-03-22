@@ -22,7 +22,7 @@ fn main() {
         "FEHLER: Datei konnte nicht geöffnet werden! Hinweis: Die Datei muss als UTF-8 encoded sein.",
     );
 
-    println!("BMEcat wird verarbeitet... Bitte haben sie etwas Gedult.");
+    println!("BMEcat wird verarbeitet... Bitte haben Sie etwas Geduld.");
     let articles = bmecat::read_bmecat(file_string);
 
     println!("CSV Datei wird generiert...");
