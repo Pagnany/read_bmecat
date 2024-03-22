@@ -3,27 +3,20 @@ pub fn read_bmecat(file: String) -> Vec<Article> {
 
     let mut articles = Vec::new();
     for node in doc.descendants() {
-        match node.tag_name().name() {
-            "T_NEW_CATALOG" => {
-                for descen in node.descendants() {
-                    match descen.tag_name().name() {
-                        "ARTICLE" => {
-                            articles.push(create_article(descen));
-                        }
-                        _ => (),
-                    }
+        if node.tag_name().name() == "T_NEW_CATALOG" {
+            for descen in node.descendants() {
+                if descen.tag_name().name() == "ARTICLE" {
+                    articles.push(create_article(descen));
                 }
             }
-            _ => (),
         }
     }
     articles
 }
 
 fn create_article(node: roxmltree::Node) -> Article {
-    let mut article = Article {
-        ..Default::default()
-    };
+    let mut article: Article = Default::default();
+
     for descen in node.descendants() {
         match descen.tag_name().name() {
             "SUPPLIER_AID" => {
@@ -40,21 +33,18 @@ fn create_article(node: roxmltree::Node) -> Article {
 
 fn create_article_mime_info(node: roxmltree::Node) -> Vec<Mime> {
     let mut mime_infos = Vec::new();
+
     for descen in node.descendants() {
-        match descen.tag_name().name() {
-            "MIME" => {
-                mime_infos.push(create_article_mime(descen));
-            }
-            _ => (),
+        if descen.tag_name().name() == "MIME" {
+            mime_infos.push(create_article_mime(descen));
         }
     }
     mime_infos
 }
 
 fn create_article_mime(node: roxmltree::Node) -> Mime {
-    let mut mime = Mime {
-        ..Default::default()
-    };
+    let mut mime: Mime = Default::default();
+
     for descen in node.descendants() {
         match descen.tag_name().name() {
             "MIME_TYPE" => {
