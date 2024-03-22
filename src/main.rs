@@ -8,7 +8,7 @@ fn main() {
 
     // Wenn der Pfad nicht übergeben wurde.
     if args.len() != 2 {
-        println!("FEHLER: Bitte geben die den Pfad zur BMEcat Datei an.");
+        println!("FEHLER: Bitte geben Sie den Pfad zur BMEcat Datei an.");
 
         println!("Zum Schließen <Enter> drücken.");
         let mut line = String::new();
@@ -19,7 +19,7 @@ fn main() {
     let start_time = Local::now();
 
     let file_string = std::fs::read_to_string(&args[1]).expect(
-        "FEHLER: Datei konnte nicht geöffnet werden! Die Datei muss als UTF-8 encoded sein.",
+        "FEHLER: Datei konnte nicht geöffnet werden! Hinweis: Die Datei muss als UTF-8 encoded sein.",
     );
 
     println!("BMEcat wird verarbeitet... Bitte haben sie etwas Gedult.");
@@ -30,7 +30,6 @@ fn main() {
 
     let end_time = Local::now();
     let duration = end_time.signed_duration_since(start_time);
-
     println!("{:?}", duration);
 
     println!("Zum Schließen <Enter> drücken.");
