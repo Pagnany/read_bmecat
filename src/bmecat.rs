@@ -5,7 +5,7 @@ pub fn read_bmecat(file: String) -> Vec<Article> {
     for node in doc.descendants() {
         if node.tag_name().name() == "T_NEW_CATALOG" {
             for descen in node.descendants() {
-                if descen.tag_name().name() == "ARTICLE" {
+                if descen.tag_name().name() == "ARTICLE" || descen.tag_name().name() == "PRODUCT" {
                     articles.push(create_article(descen));
                 }
             }
@@ -19,7 +19,7 @@ fn create_article(node: roxmltree::Node) -> Article {
 
     for descen in node.descendants() {
         match descen.tag_name().name() {
-            "SUPPLIER_AID" => {
+            "SUPPLIER_AID" | "SUPPLIER_PID" => {
                 article.id = descen.text().unwrap_or("").to_string();
             }
             "MIME_INFO" => {
