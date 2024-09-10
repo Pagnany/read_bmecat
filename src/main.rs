@@ -7,6 +7,7 @@ use std::fs;
 use std::io;
 use std::path::Path;
 use unicode_segmentation::UnicodeSegmentation;
+
 mod bmecat;
 
 fn main() -> Result<()> {
@@ -14,7 +15,8 @@ fn main() -> Result<()> {
 
     println!("Reading BMEcat file...");
     //let temp = fs::read_to_string("./files/Boschimp.xml").expect("Can't read file");
-    let temp = fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
+    //let temp = fs::read_to_string("./files/nw_bmecat.xml").expect("Can't read file");
+    let temp = fs::read_to_string("./files/nw_bmecat_2.xml").expect("Can't read file");
     //let temp fs::read_to_string("./files/ELTEN BMEcat 1.2.xml").expect("Can't read file");
 
     println!("Parsing BMEcat file...");
@@ -27,7 +29,8 @@ fn main() -> Result<()> {
     println!("Connecting to database...");
     // connection to table
     let env = create_environment_v3().map_err(|e| e.unwrap())?;
-    let buffer = r#"Driver={Microsoft Visual FoxPro Driver};SourceType=DBF;SourceDB=c:\vfpdb\;Exclusive=No;Collate=Machine;NULL=NO;DELETED=YES;BACKGROUNDFETCH=NO;"#;
+    //let buffer = r#"Driver={Microsoft Visual FoxPro Driver};SourceType=DBF;SourceDB=c:\vfpdb\;Exclusive=No;Collate=Machine;NULL=NO;DELETED=YES;BACKGROUNDFETCH=NO;"#;
+    let buffer = r#"DRIVER={Devart ODBC Driver for xBase};Database=c:\vfpdb\;DBFFormat=VisualFoxPro;Code Page=Default;IgnoreDataErrors=True;Connect Mode=Exlusive"#;
     let conn = env.connect_with_connection_string(&buffer)?;
 
     let mut tempcounter = 0;
@@ -441,7 +444,7 @@ fn insert_article_variants(
 ) -> Result<()> {
     let stmt = Statement::with_parent(conn)?;
 
-    let variant_id = format!("{}-{}", feature_id, 0.to_string());
+    let variant_id = format!("{}-{}", feature_id, 0);
 
     let mut sql_text = "INSERT INTO article_variants VALUES (".to_string();
     sql_text.push_str(&format!("'{}',", feature_id));
