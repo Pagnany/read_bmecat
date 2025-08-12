@@ -29,8 +29,8 @@ fn main() -> Result<()> {
     println!("Connecting to database...");
     // connection to table
     let env = create_environment_v3().map_err(|e| e.unwrap())?;
-    //let buffer = r#"Driver={Microsoft Visual FoxPro Driver};SourceType=DBF;SourceDB=c:\vfpdb\;Exclusive=No;Collate=Machine;NULL=NO;DELETED=YES;BACKGROUNDFETCH=NO;"#;
-    let buffer = r#"DRIVER={Devart ODBC Driver for xBase};Database=c:\vfpdb\;DBFFormat=VisualFoxPro;Code Page=Default;IgnoreDataErrors=True;Connect Mode=Exlusive"#;
+    let buffer = r#"Driver={Microsoft Visual FoxPro Driver};SourceType=DBF;SourceDB=c:\vfpdb\;Exclusive=No;Collate=Machine;NULL=NO;DELETED=YES;BACKGROUNDFETCH=NO;"#;
+    // let buffer = r#"DRIVER={Devart ODBC Driver for xBase};Database=c:\vfpdb\;DBFFormat=VisualFoxPro;Code Page=Default;IgnoreDataErrors=True;Connect Mode=Exlusive"#;
     let conn = env.connect_with_connection_string(&buffer)?;
 
     let mut tempcounter = 0;
